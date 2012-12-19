@@ -1,0 +1,9 @@
+﻿## Interface: 50100
+## Title: tdPack
+## Author: ldz5
+## Version: 50100.01
+## Dependencies: tdCore
+## OptionalDeps: Bagnon
+## SavedVariables: TDDB_TDPACK
+
+load.xml
