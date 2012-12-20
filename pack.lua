@@ -33,23 +33,19 @@ function Pack:FindSlot(item, tarSlot)
     end
 end
 
-function Pack:Start(...)
+function Pack:Start()
     if self.status ~= 'free' then
-        self:ShowMessage(L['Packing now'])
+        self:ShowMessage(L['Packing now'], 1, 0, 0)
         return
     end
     
-    for i = 1, select('#', ...) do
-        local arg = select(i, ...)
-        if arg == 'asc' then
-            tdPack:SetReversePack(nil)
-        elseif arg == 'desc' then
-            tdPack:SetReversePack(true)
-        elseif arg == 'load' then
-            tdPack:SetLoadToBag(true)
-        elseif arg == 'save' then
-            tdPack:SetSaveToBank(true)
-        end
+    if InCombatLockdown() then
+        self:ShowMessage(L['Player in combat'], 1, 0, 0)
+        return
+    end
+    
+    if GetCursorInfo() then
+        self:ShowMessage(L['Please drop the item holding on your mouse. Don\'t click/hold item, money, skills while packing.'], 1, 0, 0)
     end
     
     self:SetStatus('ready')

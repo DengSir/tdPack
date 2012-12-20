@@ -91,11 +91,11 @@ function tdPack:FindSlot(item, tarSlot)
 end
 
 function tdPack:IsReversePack()
-    return self:GetProfile().desc
+    return self.desc
 end
 
 function tdPack:SetReversePack(desc)
-    self:GetProfile().desc = desc
+    self.desc = desc
 end
 
 function tdPack:SetLoadToBag(en)
@@ -107,16 +107,17 @@ function tdPack:SetSaveToBank(en)
 end
 
 function tdPack:IsSaveToBank()
-    return self.savetobank or self:GetProfile().savetobank
+    return self.savetobank
 end
 
 function tdPack:IsLoadToBag()
-    return self.loadtobag or self:GetProfile().loadtobag
+    return self.loadtobag
 end
 
 function tdPack:OnInit()
     self:InitDB('TDDB_TDPACK', self:GetDefault())
     self:RegisterCmd('/tdpack', '/tdp', '/tp')
+    self:SetHandle('OnSlashCmd', self.Pack)
     
     self:InitOption({
         type = 'TabWidget',
@@ -147,6 +148,29 @@ end
 function tdPack:Pack(...)
     self.savetobank = nil
     self.loadtobag  = nil
-    self('Pack'):Start(...)
+    
+    local argc = select('#', ...)
+    
+    if argc > 0 then
+        print('with args')
+        for i = 1, select('#', ...) do
+            local arg = select(i, ...)
+            if arg == 'asc' then
+                self:SetReversePack(nil)
+            elseif arg == 'desc' then
+                self:SetReversePack(true)
+            elseif arg == 'load' then
+                self:SetLoadToBag(true)
+            elseif arg == 'save' then
+                self:SetSaveToBank(true)
+            end
+        end
+    else
+        print('without args')
+        self:SetReversePack(self:GetProfile().desc)
+        self:SetSaveToBank(self:GetProfile().savetobank)
+        self:SetLoadToBag(self:GetProfile().loadtobag)
+    end
+    
+    self('Pack'):Start()
 end
-tdPack.OnSlashCmd = tdPack.Pack
