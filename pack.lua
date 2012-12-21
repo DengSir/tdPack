@@ -49,7 +49,7 @@ function Pack:Start()
     end
     
     self:SetStatus('ready')
-    self:StartUpdate()
+    self:StartUpdate(0.2)
 end
 
 function Pack:Stop()
@@ -236,14 +236,9 @@ Pack.statusProc = {
 }
 
 function Pack:OnUpdate(elapsed)
-    self.nextUpdate = self.nextUpdate - elapsed
-    if self.nextUpdate < 0 then
-        self.nextUpdate = self.updateElapsed
-        
-        local proc = self.statusProc[self.status]
-        if proc then
-            proc(self)
-        end
+    local proc = self.statusProc[self.status]
+    if proc then
+        proc(self)
     end
 end
 
