@@ -1,4 +1,7 @@
 
+local assert, ipairs, pairs, ripairs = assert, ipairs, pairs, ripairs
+local tinsert, tremove, wipe = table.insert, table.remove, wipe
+
 local tdPack = tdCore(...)
 
 local Group = tdPack('Group')
@@ -58,16 +61,6 @@ function Bag:GetNormalGroup()
     return self.groups[0]
 end
 
---[[
-function Bag:GetTradeGroup(family)
-    for _, group in self:IterateTradeGroups() do
-        if family == group:GetFamily() then
-            return group
-        end
-    end
-end
---]]
-
 function Bag:IsLocked()
     for _, group in self:IterateGroups() do
         if group:IsLocked() then
@@ -75,12 +68,6 @@ function Bag:IsLocked()
         end
     end
 end
-
---[[ 
-function Bag:HasTradeGroup()
-    return #self.groups > 0
-end
---]]
 
 function Bag:Pack()
     local complete = true

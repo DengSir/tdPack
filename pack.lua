@@ -1,18 +1,25 @@
 
 local tdPack = tdCore(...)
 
-local ipairs, ripairs, tinsert, tremove, wipe = ipairs, ripairs, tinsert, tremove, wipe
-local ActionStatus_DisplayMessage = ActionStatus_DisplayMessage
+local ipairs, ripairs, wipe = ipairs, ripairs, wipe
+local tinsert, tremove = table.insert, table.remove
 
 local Bag = tdPack('Bag')
 local Slot = tdPack('Slot')
 local Pack = tdPack:NewModule('Pack', CreateFrame('Frame'), 'Event', 'Update')
 local L = tdPack:GetLocale()
 
-Pack.updateElapsed = 0.1
-Pack.nextUpdate = 0
+local STATUS_FREE       = 0
+local STATUS_READY      = 1
+local STATUS_STACKING   = 2
+local STATUS_STACKED    = 3
+local STATUS_PACKING    = 4
+local STATUS_PACKED     = 5
+local STATUS_FINISH     = 6
+local STATUS_CANCEL     = 7
+
 Pack.isBankOpened = nil
-Pack.status = 'free'
+Pack.status = STATUS_FREE
 Pack.slots = {}
 Pack.bags = {}
 
@@ -34,7 +41,7 @@ function Pack:FindSlot(item, tarSlot)
 end
 
 function Pack:Start()
-    if self.status ~= 'free' then
+    if self.status ~= STATUS_FREE then
         self:ShowMessage(L['Packing now'], 1, 0, 0)
         return
     end
@@ -48,7 +55,7 @@ function Pack:Start()
         self:ShowMessage(L['Please drop the item holding on your mouse. Don\'t click/hold item, money, skills while packing.'], 1, 0, 0)
     end
     
-    self:SetStatus('ready')
+    self:SetStatus(STATUS_READY)
     self:StartUpdate(0.2)
 end
 
@@ -57,11 +64,10 @@ function Pack:Stop()
     
     wipe(self.bags)
     wipe(self.slots)
-    self:SetStatus('free')
+    self:SetStatus(STATUS_FREE)
 end
 
 function Pack:ShowMessage(text, r, g, b)
---    ActionStatus_DisplayMessage(format('|cff%02x%02x%02x%s|r', (r or 1) * 0xff, (g or 1) * 0xff, (b or 1) * 0xff, text), true)
     UIErrorsFrame:AddMessage(text, r or 1, g or 1, b or 1, 1)
 end
 
@@ -112,11 +118,8 @@ function Pack:StackFinish()
     wipe(self.slots)
 end
 
-local startTime
 function Pack:PackReady()
     wipe(self.bags)
-    
-    startTime = GetTime()
     
     local bag, bank
     
@@ -126,7 +129,6 @@ function Pack:PackReady()
     if self.isBankOpened then
         bank = Bag:New('bank')
         tinsert(self.bags, bank)
-        
         
         if tdPack:IsLoadToBag() and tdPack:IsSaveToBank() then
             local loadTo = bank:GetSwapItems()
@@ -164,16 +166,12 @@ end
 
 function Pack:PackFinish()
     wipe(self.bags)
-    
-    print(GetTime() - startTime)
 end
 
 ------ status
 
 function Pack:SetStatus(status)
     self.status = status
-    
---    print(status)
 end
 
 function Pack:StatusReady()
@@ -182,7 +180,7 @@ function Pack:StatusReady()
     end
     
     self:StackReady()
-    self:SetStatus('stacking')
+    self:SetStatus(STATUS_STACKING)
 end
 
 function Pack:StatusStacking()
@@ -190,7 +188,7 @@ function Pack:StatusStacking()
         return
     end
     
-    self:SetStatus('stacked')
+    self:SetStatus(STATUS_STACKED)
     self:StackFinish()
 end
 
@@ -200,7 +198,7 @@ function Pack:StatusStacked()
     end
     
     self:PackReady()
-    self:SetStatus('packing')
+    self:SetStatus(STATUS_PACKING)
 end
 
 function Pack:StatusPacking()
@@ -208,12 +206,12 @@ function Pack:StatusPacking()
         return
     end
     
-    self:SetStatus('packed')
+    self:SetStatus(STATUS_PACKED)
     self:PackFinish()
 end
 
 function Pack:StatusPacked()
-    self:SetStatus('finish')
+    self:SetStatus(STATUS_FINISH)
 end
 
 function Pack:StatusFinish()
@@ -226,16 +224,16 @@ function Pack:StatusCancel()
 end
 
 Pack.statusProc = {
-    ready    = Pack.StatusReady,
-    stacking = Pack.StatusStacking,
-    stacked  = Pack.StatusStacked,
-    packing  = Pack.StatusPacking,
-    packed   = Pack.StatusPacked,
-    finish   = Pack.StatusFinish,
-    cancel   = Pack.StatusCancel,
+    [STATUS_READY]    = Pack.StatusReady,
+    [STATUS_STACKING] = Pack.StatusStacking,
+    [STATUS_STACKED]  = Pack.StatusStacked,
+    [STATUS_PACKING]  = Pack.StatusPacking,
+    [STATUS_PACKED]   = Pack.StatusPacked,
+    [STATUS_FINISH]   = Pack.StatusFinish,
+    [STATUS_CANCEL]   = Pack.StatusCancel,
 }
 
-function Pack:OnUpdate(elapsed)
+function Pack:OnUpdate()
     local proc = self.statusProc[self.status]
     if proc then
         proc(self)
@@ -249,15 +247,16 @@ function Pack:BANKFRAME_OPENED()
 end
 
 function Pack:BANKFRAME_CLOSED()
-    self.isBankOpened = nil
-    if self.status ~= 'free' then
-        self:SetStatus('cancel')
+    if self.isBankOpened and self.status ~= STATUS_FREE then
+        self:SetStatus(STATUS_CANCEL)
+        self:ShowMessage(L['Leave bank, pack cancel.'], 1, 0, 0)
     end
+    self.isBankOpened = nil
 end
 
 function Pack:PLAYER_ENTER_COMBAT()
-    if self.status ~= 'free' then
-        self:SetStatus('cancel')
+    if self.status ~= STATUS_FREE then
+        self:SetStatus(STATUS_CANCEL)
         self:ShowMessage(L['Player enter combat, pack cancel.'], 1, 0, 0)
     end
 end

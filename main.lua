@@ -2,6 +2,86 @@
 local tdPack = tdCore:NewAddon(...)
 local L = tdPack:GetLocale()
 
+L.Weapon, L.Armor, L.Container, L.Consumable, L.Glyph, L.Trade, L.Formula, L.Jewelry, L.Misc, L.Quest, L.BattlePet = GetAuctionItemClasses()
+L.FishingRod = select(17, GetAuctionItemSubClasses(1))
+
+function tdPack:GetDefault()
+    return {
+        SaveToBank = {
+            '#'  .. L.Jewelry,    -- 珠宝
+            '##' .. '元素',
+        },
+        LoadFromBank = {
+            '#'  .. L.Quest,      -- 任务
+            '#'  .. L.Jewelry,    -- 珠宝
+        },
+        Orders = {
+            CustomOrder = {
+                HEARTHSTONE_ITEM_ID,-- 炉石
+                79104,              -- 水壶
+                2901,               -- 矿工锄
+                5956,               -- 铁匠锤
+                7005,               -- 剥皮刀
+                20815,              -- 珠宝制作工具
+                39505,              -- 学者的书写工具
+                40772,              -- 侏儒军刀
+                49040,              -- 维斯基
+                48933,              -- 虫洞 Northland
+                40768,              -- 随身邮箱
+                '##' .. L.FishingRod, -- 鱼竿
+                '#'  .. L.BattlePet,  -- 战斗宠物
+                '#'  .. L.Weapon,     -- 武器
+                '#'  .. L.Armor,      -- 护甲
+                '#'  .. L.Container,  -- 容器
+                '#'  .. L.Jewelry,    -- 珠宝
+                '#'  .. L.Glyph,      -- 雕文
+                '#'  .. L.Formula,    -- 配方
+                '#'  .. L.Trade,      -- 商品
+                '#'  .. L.Consumable, -- 消耗品
+                '#'  .. L.Misc,       -- 其它
+                '#'  .. L.Quest,      -- 任务
+            },
+            EquipLocOrder = {
+                'INVTYPE_2HWEAPON',         --双手
+                'INVTYPE_WEAPON',           --单手
+                'INVTYPE_WEAPONMAINHAND',   --主手
+                'INVTYPE_WEAPONOFFHAND',    --副手
+                'INVTYPE_SHIELD',           --副手
+                'INVTYPE_HOLDABLE',         --副手物品
+                'INVTYPE_RANGED',           --远程
+                'INVTYPE_RANGEDRIGHT',      --远程
+                'INVTYPE_THROWN',           --投掷
+                
+                'INVTYPE_HEAD',             --头部
+                'INVTYPE_SHOULDER',         --肩部
+                'INVTYPE_CHEST',            --胸部
+                'INVTYPE_ROBE',             --胸部
+                'INVTYPE_HAND',             --手
+                'INVTYPE_LEGS',             --腿部
+                
+                'INVTYPE_WRIST',            --手腕
+                'INVTYPE_WAIST',            --腰部
+                'INVTYPE_FEET',             --脚
+                'INVTYPE_CLOAK',            --背部
+                
+                'INVTYPE_NECK',             --颈部
+                'INVTYPE_FINGER',           --手指
+                'INVTYPE_TRINKET',          --饰品
+                
+                'INVTYPE_BODY',             --衬衣
+                'INVTYPE_TABARD',           --战袍
+                
+                --  这些应该不需要了
+                --  'INVTYPE_RELIC',                --圣物
+                --  'INVTYPE_WEAPONMAINHAND_PET',   --主要攻击
+                --  'INVTYPE_AMMO',                 --弹药
+                --  'INVTYPE_BAG',                  --背包
+                --  'INVTYPE_QUIVER',               --箭袋
+            },
+        }
+    }
+end
+
 tdPack:RegisterEmbed('Base', {
     GetParent = function(obj) 
         return obj.parent
@@ -114,6 +194,7 @@ function tdPack:IsLoadToBag()
     return self.loadtobag
 end
 
+local GUI = tdCore('GUI')
 function tdPack:OnInit()
     self:InitDB('TDDB_TDPACK', self:GetDefault())
     self:RegisterCmd('/tdpack', '/tdp', '/tp')
@@ -124,23 +205,45 @@ function tdPack:OnInit()
         {
             type = 'Widget', label = GENERAL,
             {
-                type = 'CheckBox', label = L['Reverse pack'],
+                type = 'CheckBox', label = L['Pack desc on default'],
                 profile = {self:GetName(), 'desc'},
             },
             {
-                type = 'CheckBox', label = L['Save to bank with packing'],
+                type = 'CheckBox', label = L['Save to bank on default'],
                 profile = {self:GetName(), 'savetobank'},
             },
             {
-                type = 'CheckBox', label = L['Load to bag with packing'],
+                type = 'CheckBox', label = L['Load to bag on default'],
                 profile = {self:GetName(), 'loadtobag'},
             },
         },
         {
-            type = 'ListWidget', label = 'Order', itemObject = tdCore('GUI')('ListWidgetLinkItem'),
-            verticalArgs = {-1, -20, 0, 0}, allowOrder = true, --height = 280, 
-            selectMode = 'MULTI',
-            profile = {'tdPack', 'Orders', 'CustomOrder'},
+            type = 'Widget', label = L['Custom order'],
+            {
+                type = 'Button', label = ADD,
+                scripts = {
+OnClick = function()
+    GUI:ShowMenu('DialogMenu', nil, nil,
+        {
+            label = L['Please input rule:'],
+            buttons = {GUI.DialogButton.Okay, GUI.DialogButton.Cancel},
+            text = true,
+            func = function(result, text)
+                if result == GUI.DialogButton.Okay and text:trim() ~= '' then
+                    tinsert(tdPack:GetProfile().Orders.CustomOrder, text:trim())
+                    tdPack:UpdateOption()
+                end
+            end
+        })
+end
+                }
+            },
+            {
+                type = 'ListWidget', label = L['Custom order'], itemObject = tdCore('GUI')('ListWidgetLinkItem'),
+                verticalArgs = {-1, 0, 0, 0}, allowOrder = true,
+                selectMode = 'MULTI',
+                profile = {self:GetName(), 'Orders', 'CustomOrder'},
+            }
         }
     })
 end
@@ -152,7 +255,6 @@ function tdPack:Pack(...)
     local argc = select('#', ...)
     
     if argc > 0 then
-        print('with args')
         for i = 1, select('#', ...) do
             local arg = select(i, ...)
             if arg == 'asc' then
@@ -166,11 +268,10 @@ function tdPack:Pack(...)
             end
         end
     else
-        print('without args')
         self:SetReversePack(self:GetProfile().desc)
         self:SetSaveToBank(self:GetProfile().savetobank)
         self:SetLoadToBag(self:GetProfile().loadtobag)
     end
     
-    self('Pack'):Start()
+    self:GetModule('Pack'):Start()
 end

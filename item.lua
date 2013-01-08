@@ -1,5 +1,6 @@
 ﻿
-local BattlePet = select(11, GetAuctionItemClasses())
+local type, tonumber = type, tonumber
+
 local BattlePetSubTypes = {GetAuctionItemSubClasses(11)}
 local GetPetInfoBySpeciesID = C_PetJournal.GetPetInfoBySpeciesID
 
@@ -39,7 +40,7 @@ function Item:GetItemInfo(itemID)
         local SpeciesID
         SpeciesID, itemLevel, itemQuality = itemID:match('battlepet:(%d+):(%d+):(%d+)')
         itemName, itemTexture, itemSubType = GetPetInfoBySpeciesID(tonumber(SpeciesID))
-        itemType = BattlePet
+        itemType = L.BattlePet
         itemSubType = BattlePetSubTypes[itemSubType]
     end
     

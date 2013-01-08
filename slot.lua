@@ -1,4 +1,6 @@
 
+local InCombatLockdown = InCombatLockdown
+
 local tdPack = tdCore(...)
 
 local Slot = tdPack:NewModule('Slot', {}, 'Base')

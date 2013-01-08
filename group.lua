@@ -1,4 +1,9 @@
 
+local band = bit.band
+local ipairs, ripairs = ipairs, ripairs
+local random = math.random
+local tinsert, tremove = table.insert, table.remove
+
 local tdPack = tdCore(...)
 
 local Slot = tdPack('Slot')
@@ -168,7 +173,7 @@ function Group:CanPutItem(item)
     if family == 0 then
         return true
     end
-    return bit.band(family, item:GetFamily()) > 0
+    return band(family, item:GetFamily()) > 0
 end
 
 function Group:CanPutSlot(slot)
