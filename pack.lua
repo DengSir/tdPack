@@ -52,7 +52,8 @@ function Pack:Start()
     end
     
     if GetCursorInfo() then
-        self:ShowMessage(L['Please drop the item holding on your mouse. Don\'t click/hold item, money, skills while packing.'], 1, 0, 0)
+        self:ShowMessage(L['Please drop the item, money or skills.'], 1, 0, 0)
+        return
     end
     
     self:SetStatus(STATUS_READY)
@@ -68,7 +69,7 @@ function Pack:Stop()
 end
 
 function Pack:ShowMessage(text, r, g, b)
-    UIErrorsFrame:AddMessage(text, r or 1, g or 1, b or 1, 1)
+    tdPack:ShowMessage('|cff45afd3tdPack: |r' .. text, r, g, b)
 end
 
 ------ stack

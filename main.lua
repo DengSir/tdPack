@@ -5,8 +5,19 @@ local L = tdPack:GetLocale()
 L.Weapon, L.Armor, L.Container, L.Consumable, L.Glyph, L.Trade, L.Formula, L.Jewelry, L.Misc, L.Quest, L.BattlePet = GetAuctionItemClasses()
 L.FishingRod = select(17, GetAuctionItemSubClasses(1))
 
+function tdPack:ShowMessage(text, r, g, b)
+    local profile = self:GetProfile()
+    
+    if profile.showmessage then
+        (profile.messageframe == 1 and DEFAULT_CHAT_FRAME or UIErrorsFrame):AddMessage(text, r or 1, g or 1, b or 1, 1)
+    end
+end
+
 function tdPack:GetDefault()
     return {
+        showmessage = true,
+        messageframe = 2,
+        
         SaveToBank = {
             '#'  .. L.Jewelry,    -- 珠宝
             '##' .. '元素',
@@ -195,6 +206,22 @@ function tdPack:IsLoadToBag()
 end
 
 local GUI = tdCore('GUI')
+
+local function OnAdd(self)
+    GUI:ShowMenu('DialogMenu', self, self,
+        {
+            label = L['Please input new rule:'],
+            buttons = {GUI.DialogButton.Okay, GUI.DialogButton.Cancel},
+            text = true,
+            func = function(result, text)
+                if result == GUI.DialogButton.Okay and text:trim() ~= '' then
+                    tinsert(tdPack:GetProfile().Orders.CustomOrder, text:trim())
+                    tdPack:UpdateOption()
+                end
+            end
+        })
+end
+
 function tdPack:OnInit()
     self:InitDB('TDDB_TDPACK', self:GetDefault())
     self:RegisterCmd('/tdpack', '/tdp', '/tp')
@@ -216,26 +243,25 @@ function tdPack:OnInit()
                 type = 'CheckBox', label = L['Load to bag on default'],
                 profile = {self:GetName(), 'loadtobag'},
             },
+            {
+                type = 'CheckBox', label = L['Show tdPack message'], name = 'ShowMessageToggle',
+                profile = {self:GetName(), 'showmessage'},
+            },
+            {
+                type = 'ComboBox', label = L['Message frame'],
+                profile = {self:GetName(), 'messageframe'}, depend = 'ShowMessageToggle',
+                itemList = {
+                    { value = 1, text = L['Show message in chat frame']},
+                    { value = 2, text = L['Show message in error frame']}
+                }
+            }
         },
         {
             type = 'Widget', label = L['Custom order'],
             {
                 type = 'Button', label = ADD,
                 scripts = {
-OnClick = function()
-    GUI:ShowMenu('DialogMenu', nil, nil,
-        {
-            label = L['Please input rule:'],
-            buttons = {GUI.DialogButton.Okay, GUI.DialogButton.Cancel},
-            text = true,
-            func = function(result, text)
-                if result == GUI.DialogButton.Okay and text:trim() ~= '' then
-                    tinsert(tdPack:GetProfile().Orders.CustomOrder, text:trim())
-                    tdPack:UpdateOption()
-                end
-            end
-        })
-end
+                    OnClick = OnAdd
                 }
             },
             {
