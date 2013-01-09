@@ -218,7 +218,7 @@ function tdPack:OnInit()
         },
         {
             type = 'ListWidget', label = L['Save to bank rule'], itemObject = tdCore('GUI')('ListWidgetLinkItem'),
-            verticalArgs = {-1, 0, 0, 0}, allowOrder = true,
+            verticalArgs = {-1, 0, 0, 0},
             selectMode = 'MULTI', extraButtons = {GUI.ListButton.Add, GUI.ListButton.Delete, GUI.ListButton.SelectAll, GUI.ListButton.SelectNone},
             profile = {self:GetName(), 'SaveToBank'},
             scripts = {
@@ -227,7 +227,7 @@ function tdPack:OnInit()
         },
         {
             type = 'ListWidget', label = L['Load from bank rule'], itemObject = tdCore('GUI')('ListWidgetLinkItem'),
-            verticalArgs = {-1, 0, 0, 0}, allowOrder = true,
+            verticalArgs = {-1, 0, 0, 0},
             selectMode = 'MULTI', extraButtons = {GUI.ListButton.Add, GUI.ListButton.Delete, GUI.ListButton.SelectAll, GUI.ListButton.SelectNone},
             profile = {self:GetName(), 'LoadFromBank'},
             scripts = {

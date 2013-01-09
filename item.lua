@@ -5,6 +5,7 @@ local BattlePetSubTypes = {GetAuctionItemSubClasses(11)}
 local GetPetInfoBySpeciesID = C_PetJournal.GetPetInfoBySpeciesID
 
 local tdPack = tdCore(...)
+local L = tdPack:GetLocale()
 
 local Rule = tdPack('Rule')
 local Item = tdPack:NewModule('Item', {}, 'Base')
