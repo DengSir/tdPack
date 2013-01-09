@@ -3,7 +3,13 @@ local L = tdCore:NewLocale(..., 'zhCN')
 
 if not L then return end
 
+L['<Left Click> '] = '<左键单击> '
+L['<Right Click> '] = '<右键单击> '
+L['<Alt-Right> '] = '<Alt-右键> '
+
 L['Pack bags'] = '整理背包'
+L['Show pack menu'] = '显示整理菜单'
+
 L['Pack asc'] = '正序整理'
 L['Pack desc'] = '逆序整理'
 L['Save to bank'] = '保存到银行'
@@ -20,6 +26,9 @@ L['Pack desc on default'] = '默认逆序整理'
 L['Save to bank on default'] = '默认保存到银行'
 L['Load to bag on default'] = '默认从银行取出'
 L['Custom order'] = '自定义规则'
+L['EquipLoc order'] = '装备位置规则'
+L['Save to bank rule'] = '保存到银行规则'
+L['Load from bank rule'] = '从银行取出规则'
 
 L['Please input new rule:'] = '请输入新的规则：'
 

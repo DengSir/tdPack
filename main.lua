@@ -13,86 +13,6 @@ function tdPack:ShowMessage(text, r, g, b)
     end
 end
 
-function tdPack:GetDefault()
-    return {
-        showmessage = true,
-        messageframe = 2,
-        
-        SaveToBank = {
-            '#'  .. L.Jewelry,    -- 珠宝
-            '##' .. '元素',
-        },
-        LoadFromBank = {
-            '#'  .. L.Quest,      -- 任务
-            '#'  .. L.Jewelry,    -- 珠宝
-        },
-        Orders = {
-            CustomOrder = {
-                HEARTHSTONE_ITEM_ID,-- 炉石
-                79104,              -- 水壶
-                2901,               -- 矿工锄
-                5956,               -- 铁匠锤
-                7005,               -- 剥皮刀
-                20815,              -- 珠宝制作工具
-                39505,              -- 学者的书写工具
-                40772,              -- 侏儒军刀
-                49040,              -- 维斯基
-                48933,              -- 虫洞 Northland
-                40768,              -- 随身邮箱
-                '##' .. L.FishingRod, -- 鱼竿
-                '#'  .. L.BattlePet,  -- 战斗宠物
-                '#'  .. L.Weapon,     -- 武器
-                '#'  .. L.Armor,      -- 护甲
-                '#'  .. L.Container,  -- 容器
-                '#'  .. L.Jewelry,    -- 珠宝
-                '#'  .. L.Glyph,      -- 雕文
-                '#'  .. L.Formula,    -- 配方
-                '#'  .. L.Trade,      -- 商品
-                '#'  .. L.Consumable, -- 消耗品
-                '#'  .. L.Misc,       -- 其它
-                '#'  .. L.Quest,      -- 任务
-            },
-            EquipLocOrder = {
-                'INVTYPE_2HWEAPON',         --双手
-                'INVTYPE_WEAPON',           --单手
-                'INVTYPE_WEAPONMAINHAND',   --主手
-                'INVTYPE_WEAPONOFFHAND',    --副手
-                'INVTYPE_SHIELD',           --副手
-                'INVTYPE_HOLDABLE',         --副手物品
-                'INVTYPE_RANGED',           --远程
-                'INVTYPE_RANGEDRIGHT',      --远程
-                'INVTYPE_THROWN',           --投掷
-                
-                'INVTYPE_HEAD',             --头部
-                'INVTYPE_SHOULDER',         --肩部
-                'INVTYPE_CHEST',            --胸部
-                'INVTYPE_ROBE',             --胸部
-                'INVTYPE_HAND',             --手
-                'INVTYPE_LEGS',             --腿部
-                
-                'INVTYPE_WRIST',            --手腕
-                'INVTYPE_WAIST',            --腰部
-                'INVTYPE_FEET',             --脚
-                'INVTYPE_CLOAK',            --背部
-                
-                'INVTYPE_NECK',             --颈部
-                'INVTYPE_FINGER',           --手指
-                'INVTYPE_TRINKET',          --饰品
-                
-                'INVTYPE_BODY',             --衬衣
-                'INVTYPE_TABARD',           --战袍
-                
-                --  这些应该不需要了
-                --  'INVTYPE_RELIC',                --圣物
-                --  'INVTYPE_WEAPONMAINHAND_PET',   --主要攻击
-                --  'INVTYPE_AMMO',                 --弹药
-                --  'INVTYPE_BAG',                  --背包
-                --  'INVTYPE_QUIVER',               --箭袋
-            },
-        }
-    }
-end
-
 tdPack:RegisterEmbed('Base', {
     GetParent = function(obj) 
         return obj.parent
@@ -208,24 +128,50 @@ end
 local GUI = tdCore('GUI')
 
 local function OnAdd(self)
-    GUI:ShowMenu('DialogMenu', self, self,
+    GUI:ShowMenu('DialogMenu', nil, nil,
         {
             label = L['Please input new rule:'],
             buttons = {GUI.DialogButton.Okay, GUI.DialogButton.Cancel},
             text = true,
             func = function(result, text)
                 if result == GUI.DialogButton.Okay and text:trim() ~= '' then
-                    tinsert(tdPack:GetProfile().Orders.CustomOrder, text:trim())
-                    tdPack:UpdateOption()
+                    self:GetItemList():InsertItem(text:trim())
+                    self:SetProfileValue(self:GetItemList(), true)
+                    self:Refresh()
                 end
             end
         })
 end
 
 function tdPack:OnInit()
-    self:InitDB('TDDB_TDPACK', self:GetDefault())
     self:RegisterCmd('/tdpack', '/tdp', '/tp')
     self:SetHandle('OnSlashCmd', self.Pack)
+    
+    self:InitDB('TDDB_TDPACK', {
+        showmessage = true,
+        messageframe = 2,
+        
+        SaveToBank = {},
+        LoadFromBank = {},
+        Orders = {
+            CustomOrder = {},
+            EquipLocOrder = {},
+        }
+    })
+    
+    do
+        local profile = self:GetProfile()
+        
+        if #profile.Orders.CustomOrder == 0 then
+            profile.Orders.CustomOrder = self.DefaultCustomOrder or {}
+        end
+        if #profile.Orders.EquipLocOrder == 0 then
+            profile.Orders.EquipLocOrder = self.DefaultEquipLocOrder or {}
+        end
+        
+        self.DefaultCustomOrder = nil
+        self.DefaultEquipLocOrder = nil
+    end
     
     self:InitOption({
         type = 'TabWidget',
@@ -257,20 +203,37 @@ function tdPack:OnInit()
             }
         },
         {
-            type = 'Widget', label = L['Custom order'],
-            {
-                type = 'Button', label = ADD,
-                scripts = {
-                    OnClick = OnAdd
-                }
+            type = 'ListWidget', label = L['Custom order'], itemObject = tdCore('GUI')('ListWidgetLinkItem'),
+            verticalArgs = {-1, 0, 0, 0}, allowOrder = true,
+            selectMode = 'MULTI', extraButtons = {GUI.ListButton.Add, GUI.ListButton.Delete, GUI.ListButton.SelectAll, GUI.ListButton.SelectNone},
+            profile = {self:GetName(), 'Orders', 'CustomOrder'},
+            scripts = {
+                OnAdd = OnAdd,
             },
-            {
-                type = 'ListWidget', label = L['Custom order'], itemObject = tdCore('GUI')('ListWidgetLinkItem'),
-                verticalArgs = {-1, 0, 0, 0}, allowOrder = true,
-                selectMode = 'MULTI',
-                profile = {self:GetName(), 'Orders', 'CustomOrder'},
-            }
-        }
+        },
+        {
+            type = 'ListWidget', label = L['EquipLoc order'], itemObject = tdCore('GUI')('ListWidgetLinkItem'),
+            verticalArgs = {-1, 0, 0, 0}, allowOrder = true,
+            profile = {self:GetName(), 'Orders', 'EquipLocOrder'},
+        },
+        {
+            type = 'ListWidget', label = L['Save to bank rule'], itemObject = tdCore('GUI')('ListWidgetLinkItem'),
+            verticalArgs = {-1, 0, 0, 0}, allowOrder = true,
+            selectMode = 'MULTI', extraButtons = {GUI.ListButton.Add, GUI.ListButton.Delete, GUI.ListButton.SelectAll, GUI.ListButton.SelectNone},
+            profile = {self:GetName(), 'SaveToBank'},
+            scripts = {
+                OnAdd = OnAdd,
+            },
+        },
+        {
+            type = 'ListWidget', label = L['Load from bank rule'], itemObject = tdCore('GUI')('ListWidgetLinkItem'),
+            verticalArgs = {-1, 0, 0, 0}, allowOrder = true,
+            selectMode = 'MULTI', extraButtons = {GUI.ListButton.Add, GUI.ListButton.Delete, GUI.ListButton.SelectAll, GUI.ListButton.SelectNone},
+            profile = {self:GetName(), 'LoadFromBank'},
+            scripts = {
+                OnAdd = OnAdd,
+            },
+        },
     })
 end
 
@@ -301,3 +264,11 @@ function tdPack:Pack(...)
     
     self:GetModule('Pack'):Start()
 end
+
+tdPack.PackMenu = {
+    { text = L['Pack asc'], onClick = function() tdPack:Pack('asc') end },
+    { text = L['Pack desc'], onClick = function() tdPack:Pack('desc') end },
+    { text = L['Save to bank'], onClick = function() tdPack:Pack('save') end },
+    { text = L['Load from bank'], onClick = function() tdPack:Pack('load') end },
+    { text = L['Open tdPack config frame'], onClick = function() tdPack:ToggleOption() end },
+}

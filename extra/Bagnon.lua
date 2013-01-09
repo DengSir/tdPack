@@ -1,14 +1,13 @@
 
-local Bagnon = LibStub('AceAddon-3.0'):GetAddon('Bagnon')
+if not IsAddOnLoaded('Bagnon') then return end
 
 local SIZE = 20
 local NORMAL_TEXTURE_SIZE = 64 * (SIZE/36)
 
-local GUI = tdCore('GUI')
 local tdPack = tdCore(...)
 local L = tdPack:GetLocale()
 
-local PackToggle = GUI:NewModule('PackToggle', CreateFrame('Button'), 'UIObject')
+local PackToggle = tdPack:NewModule('PackToggle', CreateFrame('Button'))
 
 function PackToggle:New(parent)
     local b = self:Bind(CreateFrame('Button', nil, parent))
@@ -38,24 +37,33 @@ function PackToggle:New(parent)
     icon:SetTexture([[Interface\Icons\INV_Misc_Gift_03]])
 
     b:SetScript('OnClick', self.OnClick)
-    b:SetNote(L['Pack bags'])
+    b:SetScript('OnEnter', self.OnEnter)
+    b:SetScript('OnLeave', self.OnLeave)
 
     return b
 end
 
-local tdPackMenu = {
-    { text = L['Pack asc'], onClick = function() tdPack:Pack('asc') end },
-    { text = L['Pack desc'], onClick = function() tdPack:Pack('desc') end },
-    { text = L['Save to bank'], onClick = function() tdPack:Pack('save') end },
-    { text = L['Load from bank'], onClick = function() tdPack:Pack('load') end },
-    { text = L['Open tdPack config frame'], onClick = function() tdPack:ToggleOption() end },
-}
+function PackToggle:OnEnter()
+    if self:GetRight() > (GetScreenWidth() / 2) then
+        GameTooltip:SetOwner(self, 'ANCHOR_LEFT')
+    else
+        GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+    end
+    GameTooltip:SetText('tdPack')
+    GameTooltip:AddLine(L['<Left Click> '] .. L['Pack bags'], 1, 1, 1)
+    GameTooltip:AddLine(L['<Right Click> '] .. L['Show pack menu'], 1, 1, 1)
+    GameTooltip:Show()
+end
+
+function PackToggle:OnLeave()
+    GameTooltip:Hide()
+end
 
 function PackToggle:OnClick(button)
     if button == 'LeftButton' then
         tdPack:Pack()
     elseif button == 'RightButton' then
-        GUI:ToggleMenu('ComboMenu', self, self, tdPackMenu)
+        tdCore('GUI'):ToggleMenu('ComboMenu', self, self, tdPack.PackMenu)
     end
 end
 
@@ -71,7 +79,6 @@ function Frame:CreatePackToggle()
     return toggle
 end
 
----[[
 function Frame:PlaceMenuButtons()
     local menuButtons = self.menuButtons or {}
     self.menuButtons = menuButtons
@@ -125,4 +132,3 @@ function Frame:PlaceMenuButtons()
     end
     return 0, 0
 end
---]]
