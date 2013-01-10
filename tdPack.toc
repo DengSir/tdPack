@@ -1,7 +1,7 @@
 ﻿## Interface: 50100
 ## Title: tdPack
 ## Author: ldz5
-## Version: 50100.02
+## Version: 50100.03
 ## Dependencies: tdCore
 ## OptionalDeps: Bagnon, Combuctor
 ## SavedVariables: TDDB_TDPACK
