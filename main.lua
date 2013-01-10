@@ -143,15 +143,15 @@ local function OnAdd(self)
         })
 end
 
-local function ImportFromJPack(button)
+local function ImportFromJPack()
     if not IsAddOnLoaded('JPack') then
-        GUI:ShowMenu('DialogMenu', button, button, L['JPack not loaded.'])
+        GUI:ShowMenu('DialogMenu', nil, nil, L['%s not loaded.']:format('JPack'))
         return
     end
     
-    GUI:ShowMenu('DialogMenu', button, button,
+    GUI:ShowMenu('DialogMenu', nil, nil,
         {
-            label = L['Import JPack rules will |cffff0000clear the current rules|r and |cffff0000reload addons|r, continue?'],
+            label = L['Import %s rules will |cffff0000clear the current rules|r and |cffff0000reload addons|r, continue?']:format('JPack'),
             buttons = {GUI.DialogButton.Okay, GUI.DialogButton.Cancel},
             func = function(result)
                 if result == GUI.DialogButton.Okay then
@@ -178,7 +178,7 @@ function tdPack:OnInit()
             CustomOrder = {},
             EquipLocOrder = {},
         }
-    })
+    }, true)
     
     do
         local profile = self:GetProfile()
@@ -223,11 +223,10 @@ function tdPack:OnInit()
                 }
             },
             {
-                type = 'Button', label = L['Import config from JPack'],
-                width = 250,
-                scripts = {
-                    OnClick = ImportFromJPack
-                },
+                type = 'ComboBox', label = L['Import rules from other addon'] .. [[|TInterface\OptionsFrame\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t]],
+                itemList = {
+                    {text = L['Import rules from |cffffffff%s|r']:format('JPack'), onClick = ImportFromJPack},
+                }
             },
         },
         {
