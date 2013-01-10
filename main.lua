@@ -143,6 +143,27 @@ local function OnAdd(self)
         })
 end
 
+local function ImportFromJPack(button)
+    if not IsAddOnLoaded('JPack') then
+        GUI:ShowMenu('DialogMenu', button, button, L['JPack not loaded.'])
+        return
+    end
+    
+    GUI:ShowMenu('DialogMenu', button, button,
+        {
+            label = L['Import JPack rules will |cffff0000clear the current rules|r and |cffff0000reload addons|r, continue?'],
+            buttons = {GUI.DialogButton.Okay, GUI.DialogButton.Cancel},
+            func = function(result)
+                if result == GUI.DialogButton.Okay then
+                    tdPack:GetProfile().Orders.CustomOrder = JPACK_ORDER
+                    tdPack:GetProfile().SaveToBank = JPACK_DEPOSIT
+                    tdPack:GetProfile().LoadFromBank = JPACK_DRAW
+                    ReloadUI()
+                end
+            end
+        })
+end
+
 function tdPack:OnInit()
     self:RegisterCmd('/tdpack', '/tdp', '/tp')
     self:SetHandle('OnSlashCmd', self.Pack)
@@ -200,7 +221,14 @@ function tdPack:OnInit()
                     { value = 1, text = L['Show message in chat frame']},
                     { value = 2, text = L['Show message in error frame']}
                 }
-            }
+            },
+            {
+                type = 'Button', label = L['Import config from JPack'],
+                width = 250,
+                scripts = {
+                    OnClick = ImportFromJPack
+                },
+            },
         },
         {
             type = 'ListWidget', label = L['Custom order'], itemObject = tdCore('GUI')('ListWidgetLinkItem'),
