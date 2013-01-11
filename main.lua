@@ -30,6 +30,37 @@ local GetContainerItemID = GetContainerItemID
 local GetContainerItemInfo = GetContainerItemInfo
 local GetContainerItemLink = GetContainerItemLink
 local GetContainerNumFreeSlots = GetContainerNumFreeSlots
+local GetPetInfoBySpeciesID = C_PetJournal.GetPetInfoBySpeciesID
+local BattlePetSubTypes = {GetAuctionItemSubClasses(11)}
+
+function tdPack:GetItemID(itemLink)
+    if not itemLink then
+        return
+    end
+    
+    if itemLink:find('battlepet') then
+        local id, level, quality = itemLink:match('battlepet:(%d+):(%d+):(%d+)')
+        
+        return (('battlepet:%d:%d:%d'):format(id, level, quality))
+    else
+        return (tonumber(itemLink:match('item:(%d+)')))
+    end
+end
+
+function tdPack:GetItemInfo(itemID)
+    local itemName, itemType, itemSubType, itemEquipLoc, itemQuality, itemLevel, itemTexture
+    if type(itemID) == 'number' then
+        itemName, _, itemQuality, itemLevel, _, itemType, itemSubType, _, itemEquipLoc, itemTexture = GetItemInfo(itemID)
+    else
+        local SpeciesID
+        SpeciesID, itemLevel, itemQuality = itemID:match('battlepet:(%d+):(%d+):(%d+)')
+        itemName, itemTexture, itemSubType = GetPetInfoBySpeciesID(tonumber(SpeciesID))
+        itemType = L.BattlePet
+        itemSubType = BattlePetSubTypes[itemSubType]
+    end
+    
+    return itemName, itemType, itemSubType, itemEquipLoc, itemQuality, itemLevel, itemTexture
+end
 
 ---- bag slot
 
@@ -42,14 +73,7 @@ function tdPack:GetBagSlotID(bag, slot)
     if not itemLink then
         return
     end
-    
-    if itemLink:find('battlepet') then
-        local id, level, quality = itemLink:match('battlepet:(%d+):(%d+):(%d+)')
-        
-        return (('battlepet:%d:%d:%d'):format(id, level, quality))
-    else
-        return (GetContainerItemID(bag, slot))
-    end
+    return self:GetItemID(itemLink)
 end
 
 function tdPack:GetBagSlotFamily(bag, slot)
@@ -125,45 +149,6 @@ function tdPack:IsLoadToBag()
     return self.loadtobag
 end
 
-local GUI = tdCore('GUI')
-
-local function OnAdd(self)
-    GUI:ShowMenu('DialogMenu', nil, nil,
-        {
-            label = L['Please input new rule:'],
-            buttons = {GUI.DialogButton.Okay, GUI.DialogButton.Cancel},
-            text = true,
-            func = function(result, text)
-                if result == GUI.DialogButton.Okay and text:trim() ~= '' then
-                    self:GetItemList():InsertItem(text:trim())
-                    self:SetProfileValue(self:GetItemList(), true)
-                    self:Refresh()
-                end
-            end
-        })
-end
-
-local function ImportFromJPack()
-    if not IsAddOnLoaded('JPack') then
-        GUI:ShowMenu('DialogMenu', nil, nil, L['%s not loaded.']:format('JPack'))
-        return
-    end
-    
-    GUI:ShowMenu('DialogMenu', nil, nil,
-        {
-            label = L['Import %s rules will |cffff0000clear the current rules|r and |cffff0000reload addons|r, continue?']:format('JPack'),
-            buttons = {GUI.DialogButton.Okay, GUI.DialogButton.Cancel},
-            func = function(result)
-                if result == GUI.DialogButton.Okay then
-                    tdPack:GetProfile().Orders.CustomOrder = JPACK_ORDER
-                    tdPack:GetProfile().SaveToBank = JPACK_DEPOSIT
-                    tdPack:GetProfile().LoadFromBank = JPACK_DRAW
-                    ReloadUI()
-                end
-            end
-        })
-end
-
 function tdPack:OnInit()
     self:RegisterCmd('/tdpack', '/tdp', '/tp')
     self:SetHandle('OnSlashCmd', self.Pack)
@@ -194,74 +179,7 @@ function tdPack:OnInit()
         self.DefaultEquipLocOrder = nil
     end
     
-    self:InitOption({
-        type = 'TabWidget',
-        {
-            type = 'Widget', label = GENERAL,
-            {
-                type = 'CheckBox', label = L['Pack desc on default'],
-                profile = {self:GetName(), 'desc'},
-            },
-            {
-                type = 'CheckBox', label = L['Save to bank on default'],
-                profile = {self:GetName(), 'savetobank'},
-            },
-            {
-                type = 'CheckBox', label = L['Load to bag on default'],
-                profile = {self:GetName(), 'loadtobag'},
-            },
-            {
-                type = 'CheckBox', label = L['Show tdPack message'], name = 'ShowMessageToggle',
-                profile = {self:GetName(), 'showmessage'},
-            },
-            {
-                type = 'ComboBox', label = L['Message frame'],
-                profile = {self:GetName(), 'messageframe'}, depend = 'ShowMessageToggle',
-                itemList = {
-                    { value = 1, text = L['Show message in chat frame']},
-                    { value = 2, text = L['Show message in error frame']}
-                }
-            },
-            {
-                type = 'ComboBox', label = L['Import rules from other addon'] .. [[|TInterface\OptionsFrame\UI-OptionsFrame-NewFeatureIcon:0:0:0:-1|t]],
-                itemList = {
-                    {text = L['Import rules from |cffffffff%s|r']:format('JPack'), onClick = ImportFromJPack},
-                }
-            },
-        },
-        {
-            type = 'ListWidget', label = L['Custom order'], itemObject = tdCore('GUI')('ListWidgetLinkItem'),
-            verticalArgs = {-1, 0, 0, 0}, allowOrder = true,
-            selectMode = 'MULTI', extraButtons = {GUI.ListButton.Add, GUI.ListButton.Delete, GUI.ListButton.SelectAll, GUI.ListButton.SelectNone},
-            profile = {self:GetName(), 'Orders', 'CustomOrder'},
-            scripts = {
-                OnAdd = OnAdd,
-            },
-        },
-        {
-            type = 'ListWidget', label = L['EquipLoc order'], itemObject = tdCore('GUI')('ListWidgetLinkItem'),
-            verticalArgs = {-1, 0, 0, 0}, allowOrder = true,
-            profile = {self:GetName(), 'Orders', 'EquipLocOrder'},
-        },
-        {
-            type = 'ListWidget', label = L['Save to bank rule'], itemObject = tdCore('GUI')('ListWidgetLinkItem'),
-            verticalArgs = {-1, 0, 0, 0},
-            selectMode = 'MULTI', extraButtons = {GUI.ListButton.Add, GUI.ListButton.Delete, GUI.ListButton.SelectAll, GUI.ListButton.SelectNone},
-            profile = {self:GetName(), 'SaveToBank'},
-            scripts = {
-                OnAdd = OnAdd,
-            },
-        },
-        {
-            type = 'ListWidget', label = L['Load from bank rule'], itemObject = tdCore('GUI')('ListWidgetLinkItem'),
-            verticalArgs = {-1, 0, 0, 0},
-            selectMode = 'MULTI', extraButtons = {GUI.ListButton.Add, GUI.ListButton.Delete, GUI.ListButton.SelectAll, GUI.ListButton.SelectNone},
-            profile = {self:GetName(), 'LoadFromBank'},
-            scripts = {
-                OnAdd = OnAdd,
-            },
-        },
-    })
+    self:LoadOption()
 end
 
 function tdPack:Pack(...)

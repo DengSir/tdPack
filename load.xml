@@ -2,6 +2,7 @@
     <Script file="localization\zhCN.lua"/>
     <Script file="localization\zhTW.lua"/>
     <Script file="main.lua"/>
+    <Script file="option.lua"/>
     <Script file="config.lua"/>
     <Script file="rule.lua"/>
     <Script file="item.lua"/>

@@ -1,11 +1,7 @@
 ﻿
 local type, tonumber = type, tonumber
 
-local BattlePetSubTypes = {GetAuctionItemSubClasses(11)}
-local GetPetInfoBySpeciesID = C_PetJournal.GetPetInfoBySpeciesID
-
 local tdPack = tdCore(...)
-local L = tdPack:GetLocale()
 
 local Rule = tdPack('Rule')
 local Item = tdPack:NewModule('Item', {}, 'Base')
@@ -18,7 +14,7 @@ function Item:New(parent, bag, slot)
     
     local obj = self:Bind{}
     
-    local itemName, itemType, itemSubType, itemEquipLoc, itemQuality, itemLevel, itemTexture = self:GetItemInfo(itemID)
+    local itemName, itemType, itemSubType, itemEquipLoc, itemQuality, itemLevel, itemTexture = tdPack:GetItemInfo(itemID)
     
     obj:SetParent(parent)
     obj.itemID = itemID
@@ -31,21 +27,6 @@ function Item:New(parent, bag, slot)
     obj.itemTexture = itemTexture
     
     return obj
-end
-
-function Item:GetItemInfo(itemID)
-    local itemName, itemType, itemSubType, itemEquipLoc, itemQuality, itemLevel, itemTexture
-    if type(itemID) == 'number' then
-        itemName, _, itemQuality, itemLevel, _, itemType, itemSubType, _, itemEquipLoc, itemTexture = GetItemInfo(itemID)
-    else
-        local SpeciesID
-        SpeciesID, itemLevel, itemQuality = itemID:match('battlepet:(%d+):(%d+):(%d+)')
-        itemName, itemTexture, itemSubType = GetPetInfoBySpeciesID(tonumber(SpeciesID))
-        itemType = L.BattlePet
-        itemSubType = BattlePetSubTypes[itemSubType]
-    end
-    
-    return itemName, itemType, itemSubType, itemEquipLoc, itemQuality, itemLevel, itemTexture
 end
 
 function Item:GetFamily()
