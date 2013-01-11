@@ -60,20 +60,23 @@ ItemMenu = GUI:CreateGUI({
         type = 'Button', label = ADD, verticalArgs = {0, -8, 0},
         scripts = {
             OnClick = function()
-                local addtype = ItemMenu:GetControl('AddTypeWidget'):GetSelected()
+                local addidx = ItemMenu:GetControl('AddTypeWidget'):GetSelectedIndex()
                 local rule
-                if addtype == L['By id'] then
+                if addidx == 1 then
                     rule = ItemMenu.itemID
-                elseif addtype == L['By type'] then
+                elseif addidx == 2 then
+                    if not ItemMenu.itemID then
+                        return
+                    end
                     rule = (ItemMenu:GetControl('TypeCheckBox'):GetChecked() and '#' .. ItemMenu.itemType or '') .. 
                            (ItemMenu:GetControl('SubtypeCheckBox'):GetChecked() and '##' .. ItemMenu.itemSubType or '')
-                elseif addtype == L['By input'] then
+                elseif addidx == 3 then
                     rule = ItemMenu:GetControl('InputLineEdit'):GetText()
                 else
                     return
                 end
                 
-                if type(rule) == 'string' and rule:trim() == '' then
+                if not rule or type(rule) == 'string' and rule:trim() == '' then
                     return
                 end
                 ItemMenu.caller:GetItemList():InsertItem(rule)
