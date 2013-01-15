@@ -2,9 +2,6 @@
 local tdPack = tdCore:NewAddon(...)
 local L = tdPack:GetLocale()
 
-L.Weapon, L.Armor, L.Container, L.Consumable, L.Glyph, L.Trade, L.Formula, L.Jewelry, L.Misc, L.Quest, L.BattlePet = GetAuctionItemClasses()
-L.FishingRod = select(17, GetAuctionItemSubClasses(1))
-
 function tdPack:ShowMessage(text, r, g, b)
     local profile = self:GetProfile()
     
@@ -31,7 +28,9 @@ local GetContainerItemInfo = GetContainerItemInfo
 local GetContainerItemLink = GetContainerItemLink
 local GetContainerNumFreeSlots = GetContainerNumFreeSlots
 local GetPetInfoBySpeciesID = C_PetJournal.GetPetInfoBySpeciesID
-local BattlePetSubTypes = {GetAuctionItemSubClasses(11)}
+
+local BATTLE_PET = select(11, GetAuctionItemClasses())
+local BATTLE_PET_SUBTYPES = {GetAuctionItemSubClasses(11)}
 
 function tdPack:GetItemID(itemLink)
     if not itemLink then
@@ -55,8 +54,8 @@ function tdPack:GetItemInfo(itemID)
         local SpeciesID
         SpeciesID, itemLevel, itemQuality = itemID:match('battlepet:(%d+):(%d+):(%d+)')
         itemName, itemTexture, itemSubType = GetPetInfoBySpeciesID(tonumber(SpeciesID))
-        itemType = L.BattlePet
-        itemSubType = BattlePetSubTypes[itemSubType]
+        itemType = BATTLE_PET
+        itemSubType = BATTLE_PET_SUBTYPES[itemSubType]
     end
     
     return itemName, itemType, itemSubType, itemEquipLoc, itemQuality, itemLevel, itemTexture

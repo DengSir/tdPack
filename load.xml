@@ -10,6 +10,8 @@
     <Script file="group.lua"/>
     <Script file="bag.lua"/>
     <Script file="pack.lua"/>
+    <Script file="extra\PackButton.lua"/>
     <Script file="extra\Bagnon.lua"/>
     <Script file="extra\Combuctor.lua"/>
+    <Script file="extra\BaudBag.lua"/>
 </Ui>

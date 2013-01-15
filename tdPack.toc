@@ -3,7 +3,7 @@
 ## Author: ldz5
 ## Version: 50100.03
 ## Dependencies: tdCore
-## OptionalDeps: Bagnon, Combuctor
+## OptionalDeps: Bagnon, Combuctor, BaudBag
 ## SavedVariables: TDDB_TDPACK
 
 load.xml
