@@ -63,7 +63,7 @@ function PackToggle:OnClick(button)
     if button == 'LeftButton' then
         tdPack:Pack()
     elseif button == 'RightButton' then
-        tdCore('GUI'):ToggleMenu('ComboMenu', self, self, tdPack.PackMenu)
+        tdCore('GUI'):ToggleMenu('ComboMenu', self, tdPack.PackMenu)
     end
 end
 

@@ -57,7 +57,7 @@ function Pack:Start()
     end
     
     self:SetStatus(STATUS_READY)
-    self:StartUpdate(0.2)
+    self:StartUpdate(0.05)
 end
 
 function Pack:Stop()
@@ -255,7 +255,7 @@ function Pack:BANKFRAME_CLOSED()
     self.isBankOpened = nil
 end
 
-function Pack:PLAYER_ENTER_COMBAT()
+function Pack:PLAYER_REGEN_DISABLED()
     if self.status ~= STATUS_FREE then
         self:SetStatus(STATUS_CANCEL)
         self:ShowMessage(L['Player enter combat, pack cancel.'], 1, 0, 0)
@@ -265,5 +265,5 @@ end
 function Pack:OnInit()
     self:RegisterEvent('BANKFRAME_OPENED')
     self:RegisterEvent('BANKFRAME_CLOSED')
-    self:RegisterEvent('PLAYER_ENTER_COMBAT')
+    self:RegisterEvent('PLAYER_REGEN_DISABLED')
 end
