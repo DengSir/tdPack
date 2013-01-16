@@ -121,10 +121,10 @@ function ItemDialog:SetItem(itemID)
 end
 
 function ItemDialog:GetResultValue()
-    if not self.itemID then
+    local addidx = self.tabWidget:GetSelectedIndex()
+    if not self.itemID and addidx ~= 3 then
         return
     end
-    local addidx = self.tabWidget:GetSelectedIndex()
     if addidx == 1 then
         return self.itemID
     elseif addidx == 2 then
@@ -153,11 +153,12 @@ end
 
 local function ImportFromJPack()
     if not IsAddOnLoaded('JPack') then
-        self:ShowDialog('Dialog', L['%s not loaded.']:format('JPack'), GUI.DialogIcon.Critical)
+        GUI:ShowDialog(tdPack, 'Dialog', L['%s not loaded.']:format('JPack'), GUI.DialogIcon.Critical)
         return
     end
     
-    self:ShowDialog(
+    GUI:ShowDialog(
+        tdPack,
         'Dialog',
         L['Import %s rules will |cffff0000clear the current rules|r and |cffff0000reload addons|r, continue?']:format('JPack'),
         GUI.DialogIcon.Question,

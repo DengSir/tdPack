@@ -14,4 +14,5 @@
     <Script file="extra\Bagnon.lua"/>
     <Script file="extra\Combuctor.lua"/>
     <Script file="extra\BaudBag.lua"/>
+    <Script file="extra\BlizzardBag.lua"/>
 </Ui>

@@ -24,7 +24,7 @@ local function OnClick(self, button)
         end
     elseif button == 'RightButton' then
         if IsAltKeyDown() then
-            tdCore('GUI'):ToggleMenu('ComboMenu', self, tdPack.PackMenu)
+            tdCore('GUI'):ToggleMenu(self, 'ComboMenu', tdPack.PackMenu)
         else
             tdPack:Pack()
         end
