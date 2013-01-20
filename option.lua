@@ -7,11 +7,7 @@ local GUI = tdCore('GUI')
 local ItemDialog = GUI:NewModule('ItemDialog', GUI('Dialog'):New())
 
 local function ItemInfoOnClick(self)
-    local type, _, link = GetCursorInfo()
-    if type == 'item' then
-        ClearCursor()
-        self:GetParent():SetItem(tdPack:GetItemID(link))
-    end
+    self:GetParent():LoadCursor()
 end
 
 function ItemDialog:New(parent)
@@ -99,10 +95,20 @@ function ItemDialog:OnShow()
     self.lineEdit:SetText('')
     self.typeCheckBox:SetChecked(true)
     self.subtypeCheckBox:SetChecked(true)
+    
+    self:LoadCursor()
 end
 
 function ItemDialog:GetShowHeight()
     return 185
+end
+
+function ItemDialog:LoadCursor()
+    local type, _, link = GetCursorInfo()
+    if type == 'item' then
+        ClearCursor()
+        self:SetItem(tdPack:GetItemID(link))
+    end
 end
 
 function ItemDialog:SetItem(itemID)
