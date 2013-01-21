@@ -46,6 +46,11 @@ function Pack:Start()
         return
     end
     
+    if UnitIsDead('player') then
+        self:ShowMessage(L['Player is dead'], 1, 0, 0)
+        return
+    end
+    
     if InCombatLockdown() then
         self:ShowMessage(L['Player in combat'], 1, 0, 0)
         return
