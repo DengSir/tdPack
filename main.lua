@@ -180,7 +180,7 @@ function tdPack:OnInit()
     
     self:LoadOption()
     
-    self:InitMinimap({
+    self:InitMinimap{
         itemList = tdPack.PackMenu, angle = -253, icon = [[Interface\Icons\INV_Misc_Gift_03]],
         note = {
             'tdPack', L['<Left Click> '] .. L['Pack bags'], L['<Right Click> '] .. L['Show pack menu']
@@ -190,7 +190,7 @@ function tdPack:OnInit()
                 self:Pack()
             end,
         }
-    })
+    }
 end
 
 function tdPack:Pack(...)
