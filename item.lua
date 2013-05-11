@@ -16,6 +16,10 @@ function Item:New(parent, bag, slot)
     
     local itemName, itemType, itemSubType, itemEquipLoc, itemQuality, itemLevel, itemTexture = tdPack:GetItemInfo(itemID)
     
+    if not itemName or not itemLevel then
+        self:Debug(itemID, tdPack:GetItemInfo(itemID))
+    end
+    
     obj:SetParent(parent)
     obj.itemID = itemID
     obj.itemName = itemName
@@ -32,7 +36,9 @@ end
 function Item:GetFamily()
     local itemID = self:GetItemID()
     
-    return type(itemID) == 'string' and 0 or GetItemFamily(itemID)
+    self:Debug(itemID, GetItemFamily(itemID))
+    
+    return type(itemID) == 'string' and 0 or GetItemFamily(itemID) or 0
 end
 
 function Item:NeedSaveToBank()
@@ -68,7 +74,7 @@ function Item:GetItemSubType()
 end
 
 function Item:GetItemLevel()
-    return self.itemLevel or ''
+    return self.itemLevel or 0
 end
 
 function Item:GetItemQuality()
