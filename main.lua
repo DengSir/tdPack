@@ -4,14 +4,14 @@ local L = tdPack:GetLocale()
 
 function tdPack:ShowMessage(text, r, g, b)
     local profile = self:GetProfile()
-    
+
     if profile.showmessage then
         (profile.messageframe == 1 and DEFAULT_CHAT_FRAME or UIErrorsFrame):AddMessage(text, r or 1, g or 1, b or 1, 1)
     end
 end
 
 tdPack:RegisterEmbed('Base', {
-    GetParent = function(obj) 
+    GetParent = function(obj)
         return obj.parent
     end,
     SetParent = function(obj, parent)
@@ -27,19 +27,22 @@ local GetContainerItemID = GetContainerItemID
 local GetContainerItemInfo = GetContainerItemInfo
 local GetContainerItemLink = GetContainerItemLink
 local GetContainerNumFreeSlots = GetContainerNumFreeSlots
-local GetPetInfoBySpeciesID = C_PetJournal.GetPetInfoBySpeciesID
+local GetPetInfoBySpeciesID = C_PetJournal and C_PetJournal.GetPetInfoBySpeciesID or nop
 
-local BATTLE_PET = select(11, GetAuctionItemClasses())
-local BATTLE_PET_SUBTYPES = {GetAuctionItemSubClasses(11)}
+-- local BATTLE_PET = select(11, GetAuctionItemClasses())
+-- local BATTLE_PET_SUBTYPES = {GetAuctionItemSubClasses(11)}
+
+local BATTLE_PET = {}
+local BATTLE_PET_SUBTYPES = {}
 
 function tdPack:GetItemID(itemLink)
     if not itemLink then
         return
     end
-    
+
     if itemLink:find('battlepet') then
         local id, level, quality = itemLink:match('battlepet:(%d+):(%d+):(%d+)')
-        
+
         return (('battlepet:%d:%d:%d'):format(id, level, quality))
     else
         return (tonumber(itemLink:match('item:(%d+)')))
@@ -57,7 +60,7 @@ function tdPack:GetItemInfo(itemID)
         itemType = BATTLE_PET
         itemSubType = BATTLE_PET_SUBTYPES[itemSubType]
     end
-    
+
     return itemName, itemType, itemSubType, itemEquipLoc, itemQuality, itemLevel, itemTexture
 end
 
@@ -80,7 +83,7 @@ function tdPack:GetBagSlotFamily(bag, slot)
     if not itemID then
         return 0
     end
-    
+
     return type(itemID) == 'string' and 0 or GetItemFamily(itemID)
 end
 
@@ -93,12 +96,12 @@ function tdPack:IsBagSlotFull(bag, slot)
     if not itemID then
         return false
     end
-    
+
     local stackCount = select(8, GetItemInfo(itemID))
     if stackCount == 1 then
         return true
     end
-    
+
     return stackCount == (select(2, GetContainerItemInfo(bag, slot)))
 end
 
@@ -151,11 +154,11 @@ end
 function tdPack:OnInit()
     self:RegisterCmd('/tdpack', '/tdp', '/tp')
     self:SetHandle('OnSlashCmd', self.Pack)
-    
+
     self:InitDB('TDDB_TDPACK', {
         showmessage = true,
         messageframe = 2,
-        
+
         SaveToBank = {},
         LoadFromBank = {},
         Orders = {
@@ -163,23 +166,23 @@ function tdPack:OnInit()
             EquipLocOrder = {},
         }
     }, true)
-    
+
     do
         local profile = self:GetProfile()
-        
+
         if #profile.Orders.CustomOrder == 0 then
             profile.Orders.CustomOrder = self.DefaultCustomOrder or {}
         end
         if #profile.Orders.EquipLocOrder == 0 then
             profile.Orders.EquipLocOrder = self.DefaultEquipLocOrder or {}
         end
-        
+
         self.DefaultCustomOrder = nil
         self.DefaultEquipLocOrder = nil
     end
-    
+
     self:LoadOption()
-    
+
     self:InitMinimap{
         itemList = tdPack.PackMenu, angle = -253, icon = [[Interface\Icons\INV_Misc_Gift_03]],
         note = {
@@ -196,9 +199,9 @@ end
 function tdPack:Pack(...)
     self.savetobank = nil
     self.loadtobag  = nil
-    
+
     local argc = select('#', ...)
-    
+
     if argc > 0 then
         for i = 1, select('#', ...) do
             local arg = select(i, ...)
@@ -217,7 +220,7 @@ function tdPack:Pack(...)
         self:SetSaveToBank(self:GetProfile().savetobank)
         self:SetLoadToBag(self:GetProfile().loadtobag)
     end
-    
+
     self:GetModule('Pack'):Start()
 end
 
